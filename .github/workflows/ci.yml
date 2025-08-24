@@ -1,0 +1,39 @@
+# Nome do seu workflow
+name: Build e Testes
+
+# Gatilhos: rodar em push ou pull request para a branch main
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+# Tarefas a serem executadas
+jobs:
+  build:
+    # Usar a versão mais recente do Ubuntu
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Clona o repositório
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      # 2. Configura o ambiente Node.js
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Use a versão do Node.js do seu projeto
+          cache: 'npm'
+
+      # 3. Instala as dependências
+      - name: Instalar dependências
+        run: npm install
+
+      # 4. Roda o script de build
+      - name: Build do projeto
+        run: npm run build --if-present
+
+      # 5. Roda os testes
+      - name: Rodar testes
+        run: npm test --if-present
