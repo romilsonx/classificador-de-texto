@@ -102,7 +102,7 @@ export default function Home() {
 
       const data: ClassificationResult = await response.json();
       setResult(data);
-    } catch (err: any) {
+    } catch (err: Error) {
       setError(err.message || 'Falha ao conectar com a API.');
     } finally {
       setLoading(false);
