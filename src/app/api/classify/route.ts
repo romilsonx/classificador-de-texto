@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { GoogleGenAI, HarmCategory, HarmBlockThreshold } from '@google/genai';
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/genai';
 
 // --- Controle de Rate Limiting (em memória) ---
 
@@ -45,7 +45,7 @@ if (!API_KEY) {
 }
 
 // Inicializa o cliente da Google AI com a chave de API.
-const genAI = new GoogleGenAI(API_KEY);
+const genAI = new GoogleGenerativeAI(API_KEY);
 
 // --- Handler para Requisições POST ---
 
@@ -105,13 +105,13 @@ Sua resposta deve ser exclusivamente um objeto JSON válido, sem nenhum texto ad
 ${text}
 ###`;
 
+    // Obtém o modelo generativo com as configurações de segurança
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash", safetySettings });
+    
     // Faz a chamada à API do Gemini com o prompt.
-    const result = await genAI.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      safetySettings
-    });
-    let content = result.candidates[0].content.parts[0].text; // O conteúdo bruto da resposta da IA.
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    let content = response.text(); // O conteúdo bruto da resposta da IA.
 
     // --- Pós-processamento da Resposta da IA ---
     // A IA pode ocasionalmente incluir marcadores de bloco de código Markdown (```json) na resposta.
