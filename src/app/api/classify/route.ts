@@ -45,7 +45,7 @@ if (!API_KEY) {
 }
 
 // Inicializa o cliente da Google AI com a chave de API.
-const genAI = new GoogleGenerativeAI(API_KEY);
+const genAI = new GoogleGenerativeAI({ apiKey: API_KEY });
 
 // --- Handler para Requisições POST ---
 
