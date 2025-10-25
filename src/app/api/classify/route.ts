@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
 
+export const runtime = 'nodejs';
+
 // --- Controle de Rate Limiting (em memória) ---
 
 // Armazena os contadores de requisição por IP.
@@ -37,7 +39,7 @@ function checkRateLimit(ip: string): boolean {
 // --- Configuração da API do Google Gemini ---
 
 // Carrega a chave de API do ambiente. É crucial para a segurança que a chave não esteja no código-fonte.
-const API_KEY = process.env.GOOGLE_API_KEY;
+const API_KEY: string = process.env.GOOGLE_API_KEY as string;
 
 // Validação inicial: garante que a chave de API foi configurada antes de continuar.
 if (!API_KEY) {
@@ -45,7 +47,7 @@ if (!API_KEY) {
 }
 
 // Inicializa o cliente da Google AI com a chave de API.
-const genAI = new GoogleGenerativeAI({ apiKey: API_KEY });
+const genAI = new GoogleGenerativeAI(API_KEY);
 
 // --- Handler para Requisições POST ---
 
@@ -56,7 +58,10 @@ const genAI = new GoogleGenerativeAI({ apiKey: API_KEY });
  */
 export async function POST(req: NextRequest) {
   // --- Aplicação do Rate Limiter ---
-  const ip = req.ip ?? 'unknown'; // Obtém o IP do cliente.
+  const ip =
+  req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+  req.headers.get('x-real-ip') ||
+  'unknown'; // Obtém o IP do cliente.
   if (!checkRateLimit(ip)) {
     return NextResponse.json({ error: 'Limite de requisições excedido. Tente novamente mais tarde.' }, { status: 429 });
   }
