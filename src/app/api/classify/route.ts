@@ -127,15 +127,26 @@ ${text}
     // Retorna a classificação em formato JSON para o frontend.
     return NextResponse.json(classification);
 
-  } catch (error) {
-    // --- Tratamento de Erros ---
+  } catch (error: any) {
+    // --- Tratamento de Erros Aprimorado ---
     console.error('Erro na API route:', error);
+
+    // Erro específico da API do Google (ex: sobrecarga, chave inválida)
+    if (error && error.status) {
+        if (error.status === 503) {
+            return NextResponse.json({ error: 'Nossos sistemas estão sobrecarregados no momento. Por favor, tente novamente em alguns instantes.' }, { status: 503 });
+        }
+        if (error.status === 400) {
+            return NextResponse.json({ error: 'Sua chave de API é inválida ou a requisição está mal formatada. Verifique suas credenciais.' }, { status: 400 });
+        }
+    }
     
-    // Se o erro for de parsing, indica que a IA não retornou um JSON válido.
+    // Erro de parsing (a IA não retornou um JSON válido)
     if (error instanceof SyntaxError) {
         return NextResponse.json({ error: 'Falha ao processar a resposta da IA. O formato retornado não é um JSON válido.' }, { status: 500 });
     }
-    // Para outros erros internos, retorna uma mensagem genérica.
-    return NextResponse.json({ error: 'Erro interno do servidor ao classificar o texto.' }, { status: 500 });
+
+    // Para outros erros internos, retorna uma mensagem genérica
+    return NextResponse.json({ error: 'Ocorreu um erro inesperado em nosso servidor. Tente novamente mais tarde.' }, { status: 500 });
   }
 }
